@@ -6,9 +6,7 @@ trigger:
 pool:
   vmImage: 'windows-latest' # 使用 Windows Agent 来构建 Windows 应用
 
-variables:
-  # 你可以根据需要添加变量，例如项目目录
-  # projectDirectory: 'your_flutter_project_folder' # 如果你的pubspec.yaml不在根目录
+
 
 steps:
 - task: FlutterInstall@0
