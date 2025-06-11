@@ -1,21 +1,39 @@
-# 在 Release Pipeline 的 Stage 中添加以下任务
+# azure-pipelines.yml
 
-# Download Artifacts (如果你的 Release Pipeline 和 Build Pipeline 是分开的，通常会需要下载)
-- task: DownloadBuildArtifacts@1
+trigger:
+- main # 或你的主分支名称
+
+pool:
+  vmImage: 'windows-latest' # 使用 Windows Agent 来构建 Windows 应用
+
+variables:
+  # 你可以根据需要添加变量，例如项目目录
+  # projectDirectory: 'your_flutter_project_folder' # 如果你的pubspec.yaml不在根目录
+
+steps:
+- task: FlutterInstall@0
   inputs:
-    buildType: 'specific'
-    project: '$(System.TeamProject)'
-    pipeline: 'YourBuildPipelineName' # 替换为你的构建管道名称
-    buildVersionToDownload: 'latest'
-    downloadType: 'single'
-    artifactName: 'WindowsApp' # 与构建管道中定义的 artifactName 相同
-    downloadPath: '$(System.DefaultWorkingDirectory)' # 下载到当前工作目录
+    channel: 'stable' # 或 'beta', 'dev'
+    version: 'latest' # 或指定特定版本，例如 '3.19.0'
+  displayName: 'Install Flutter SDK'
 
-# Copy Files to a Network Share (示例：上传到网络共享)
+- task: FlutterBuild@0
+  inputs:
+    projectDirectory: '$(System.DefaultWorkingDirectory)' # 你的项目根目录
+    targetPlatform: 'desktop' # 构建桌面应用
+    desktopTarget: 'windows' # 明确指定 Windows 平台
+    # buildArguments: '--release' # 可选：添加 --release 进行发布构建，生成优化后的程序
+  displayName: 'Build Flutter Windows App'
+
 - task: CopyFiles@2
   inputs:
-    sourceFolder: '$(System.DefaultWorkingDirectory)/WindowsApp' # 从下载的Artifact路径复制
-    targetFolder: '\\your_network_share\deployments\$(Build.BuildNumber)' # 替换为你的目标网络共享路径
-    # cleanTargetFolder: true # 可选：在复制前清空目标文件夹
-    # overwrite: true # 可选：覆盖同名文件
-  displayName: 'Upload Windows App to File Share'
+    contents: '**\build\windows\runner\Release\**' # 复制构建好的Windows程序，通常在 build/windows/runner/Release 下
+    targetFolder: '$(Build.ArtifactStagingDirectory)/WindowsApp'
+  displayName: 'Copy Windows App to Artifact Staging Directory'
+
+- task: PublishBuildArtifacts@1
+  inputs:
+    pathToPublish: '$(Build.ArtifactStagingDirectory)/WindowsApp'
+    artifactName: 'WindowsApp' # 定义构建产物的名称
+    publishLocation: 'Container' # 发布到Azure Pipelines的内部存储
+  displayName: 'Publish Windows App Artifact'
