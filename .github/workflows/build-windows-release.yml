@@ -22,15 +22,15 @@ jobs:
       - name: Get Flutter Dependencies
         run: flutter pub get
 
-      - name: Enable Windows Desktop Support
-        run: flutter config --enable-windows-desktop
+      # - name: Enable Windows Desktop Support
+      #   run: flutter config --enable-windows-desktop
 
       - name: Build Windows Release
         run: flutter build windows --release # 构建 Windows 发布版
 
       - name: Create Zip Archive of Windows Build
         run: |
-          $sourceDir = ".\build\windows\runner\Release"
+          $sourceDir = ".\build\windows\x64\runner\Release"
           $zipFileName = "herolist_flutter_windows_${{ github.ref_name }}.zip"
           Compress-Archive -Path $sourceDir -DestinationPath $zipFileName -Force
         shell: pwsh # 使用 PowerShell 来执行压缩命令
