@@ -1,0 +1,21 @@
+# 在 Release Pipeline 的 Stage 中添加以下任务
+
+# Download Artifacts (如果你的 Release Pipeline 和 Build Pipeline 是分开的，通常会需要下载)
+- task: DownloadBuildArtifacts@1
+  inputs:
+    buildType: 'specific'
+    project: '$(System.TeamProject)'
+    pipeline: 'YourBuildPipelineName' # 替换为你的构建管道名称
+    buildVersionToDownload: 'latest'
+    downloadType: 'single'
+    artifactName: 'WindowsApp' # 与构建管道中定义的 artifactName 相同
+    downloadPath: '$(System.DefaultWorkingDirectory)' # 下载到当前工作目录
+
+# Copy Files to a Network Share (示例：上传到网络共享)
+- task: CopyFiles@2
+  inputs:
+    sourceFolder: '$(System.DefaultWorkingDirectory)/WindowsApp' # 从下载的Artifact路径复制
+    targetFolder: '\\your_network_share\deployments\$(Build.BuildNumber)' # 替换为你的目标网络共享路径
+    # cleanTargetFolder: true # 可选：在复制前清空目标文件夹
+    # overwrite: true # 可选：覆盖同名文件
+  displayName: 'Upload Windows App to File Share'
